@@ -28,6 +28,12 @@ class Repository(ABC):
         """Check if data exists for experiment"""
         pass
 
+    @property
+    @abstractmethod
+    def data_dir(self) -> Path:
+        """Get base data directory"""
+        pass
+
 
 class ParquetRepository(Repository):
     """Repository using Parquet format for storage"""
@@ -40,8 +46,13 @@ class ParquetRepository(Repository):
             base_path: Base directory for all storage
         """
         self.base_path = Path(base_path)
-        self.data_dir = self.base_path / "data"
-        self.data_dir.mkdir(parents=True, exist_ok=True)
+        self._data_dir = self.base_path / "data"
+        self._data_dir.mkdir(parents=True, exist_ok=True)
+    
+    @property
+    def data_dir(self) -> Path:
+        """Get base data directory"""
+        return self._data_dir
     
     def save(self, experiment: Experiment, dataset: Dataset) -> None:
         """Save dataset to Parquet"""
@@ -119,8 +130,13 @@ class CSVRepository(Repository):
     
     def __init__(self, base_path: Path = Path(".")):
         self.base_path = Path(base_path)
-        self.data_dir = self.base_path / "data"
-        self.data_dir.mkdir(parents=True, exist_ok=True)
+        self._data_dir = self.base_path / "data"
+        self._data_dir.mkdir(parents=True, exist_ok=True)
+    
+    @property
+    def data_dir(self) -> Path:
+        """Get base data directory"""
+        return self._data_dir
     
     def save(self, experiment: Experiment, dataset: Dataset) -> None:
         """Save dataset to CSV"""
@@ -168,7 +184,7 @@ class CSVRepository(Repository):
         return (exp_dir / "data.csv").exists()
     
     def _experiment_dir(self, experiment: Experiment) -> Path:
-        return self.data_dir / experiment.name
+        return self._data_dir / experiment.name
 
 
 class CachedRepository(Repository):
@@ -183,6 +199,11 @@ class CachedRepository(Repository):
         """
         self.underlying = underlying
         self._cache = {}
+    
+    @property
+    def data_dir(self) -> Path:
+        """Delegate to underlying repository"""
+        return self.underlying.data_dir
     
     def save(self, experiment: Experiment, dataset: Dataset) -> None:
         """Save and cache"""
