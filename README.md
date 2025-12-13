@@ -1,5 +1,6 @@
 # Vdex
 
+Author:- Mrityunjay Shukla
 **A professional, elegant Python framework for GPU simulation analysis with fluent interfaces, immutable domain models, and design patterns.**
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
