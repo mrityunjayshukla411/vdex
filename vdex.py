@@ -29,14 +29,17 @@ from core.domain import (
     Experiment,
 )
 
-# Extractor
+# Extractors
 from extractors.extractor import Extractor
+from extractors.interval_extractor import IntervalExtractor
+from extractors.rt_cache_extractor import RTCacheExtractor
+from extractors.gcstack_extractor import GCStackExtractor
 
 # Analysis
 from core.analysis import Analysis
 
 # Plotting
-from plotters import PlotBuilder, plot, quick_plot
+from plotters import PlotBuilder, plot, quick_plot, GCStackPlotter, plot_gcstack
 
 # Parsers (for advanced usage)
 from parsers.log_parser import (
@@ -46,6 +49,8 @@ from parsers.log_parser import (
 )
 
 from parsers.interval_parser import IntervalParser
+from parsers.rt_cache_parser import RTCacheParser
+from parsers.gcstack_parser import GCStackParser
 
 # Storage (for advanced usage)
 from storage.repository import (
@@ -67,11 +72,16 @@ __all__ = [
     'Experiment',
     # Main interfaces
     'Extractor',
+    'IntervalExtractor',
+    'RTCacheExtractor',
+    'GCStackExtractor',
     'Analysis',
     # Plotting
     'PlotBuilder',
     'plot',
     'quick_plot',
+    'GCStackPlotter',
+    'plot_gcstack',
     # Convenience functions
     'extract',
     'load',
@@ -79,6 +89,9 @@ __all__ = [
     # Parsers
     'LogParser',
     'VulkanSimParser',
+    'IntervalParser',
+    'RTCacheParser',
+    'GCStackParser',
     'ParserFactory',
     # Storage
     'Repository',
