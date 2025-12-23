@@ -34,12 +34,13 @@ from extractors.extractor import Extractor
 from extractors.interval_extractor import IntervalExtractor
 from extractors.rt_cache_extractor import RTCacheExtractor
 from extractors.gcstack_extractor import GCStackExtractor
+from extractors.rt_gcstack_extractor import RTGCStackExtractor
 
 # Analysis
 from core.analysis import Analysis
 
 # Plotting
-from plotters import PlotBuilder, plot, quick_plot, GCStackPlotter, plot_gcstack
+from plotters import PlotBuilder, plot, quick_plot, GCStackPlotter, plot_gcstack, RTGCStackPlotter, plot_rt_gcstack
 
 # Parsers (for advanced usage)
 from parsers.log_parser import (
@@ -51,6 +52,7 @@ from parsers.log_parser import (
 from parsers.interval_parser import IntervalParser
 from parsers.rt_cache_parser import RTCacheParser
 from parsers.gcstack_parser import GCStackParser
+from parsers.rt_gcstack_parser  import RTGCStackParser
 
 # Storage (for advanced usage)
 from storage.repository import (
@@ -75,6 +77,7 @@ __all__ = [
     'IntervalExtractor',
     'RTCacheExtractor',
     'GCStackExtractor',
+    'RTGCStackExtractor',
     'Analysis',
     # Plotting
     'PlotBuilder',
@@ -82,6 +85,8 @@ __all__ = [
     'quick_plot',
     'GCStackPlotter',
     'plot_gcstack',
+    'RTGCStackPlotter',
+    'plot_rt_gcstack',
     # Convenience functions
     'extract',
     'load',
@@ -92,6 +97,7 @@ __all__ = [
     'IntervalParser',
     'RTCacheParser',
     'GCStackParser',
+    'RTGCStackParser',
     'ParserFactory',
     # Storage
     'Repository',
