@@ -1,5 +1,5 @@
 """
-GCStack CPI Stack plotter - Stacked bar charts for performance breakdown
+RT Cycles Distribution plotter - Stacked bar charts for RT unit cycle distribution
 """
 from pathlib import Path
 from typing import Optional, List
@@ -10,36 +10,26 @@ import matplotlib.pyplot as plt
 from plotters.plotter import Plotter, ColorPalette
 
 
-class GCStackPlotter(Plotter):
-    """Create stacked bar charts for GCStack CPI breakdown"""
+class RTCyclesDistPlotter(Plotter):
+    """Create stacked bar charts for RT Cycles Distribution"""
 
-    # GCStack components in order (base first as requested)
-    COMPONENTS = ['base', 'memstruct', 'memdata', 'sync',
-                  'comstruct', 'comdata', 'control', 'idle']
-
-    # Component display names
-    COMPONENT_LABELS = {
-        'base': 'Base',
-        'memstruct': 'Mem Struct',
-        'memdata': 'Mem Data',
-        'sync': 'Sync',
-        'comstruct': 'Com Struct',
-        'comdata': 'Com Data',
-        'control': 'Control',
-        'idle': 'Idle'
-    }
-
-    # Color palette for components (distinct, colorblind-friendly)
-    COMPONENT_COLORS = [
-        '#4C72B0',  # Base - blue
-        '#DD8452',  # MemStruct - orange
-        '#C44E52',  # MemData - red
-        '#8172B3',  # Sync - purple
-        '#55A868',  # ComStruct - green
-        '#64B5CD',  # ComData - cyan
-        '#937860',  # Control - brown
-        '#CCCCCC',  # Idle - gray
+    # Professional color palette (colorblind-friendly, publication-quality)
+    BASE_COLORS = [
+    '#2F3E46',  # RT Unit 0 - dark slate gray
+    '#8D5A4A',  # RT Unit 1 - muted brick
+    '#52796F',  # RT Unit 2 - desaturated teal
+    '#6C757D',  # RT Unit 3 - neutral gray-blue
+    '#7A6C9D',  # RT Unit 4 - muted purple
+    '#B08968',  # RT Unit 5 - dull tan
+    '#4F6D7A',  # RT Unit 6 - steel blue
+    '#3A5A40',  # RT Unit 7 - forest green
+    '#9C6644',  # RT Unit 8 - burnt sienna
+    '#6B705C',  # RT Unit 9 - olive gray
+    '#5E548E',  # RT Unit 10 - dusty indigo
+    '#495057',  # RT Unit 11 - charcoal
     ]
+
+
 
     def plot(
         self,
@@ -53,17 +43,17 @@ class GCStackPlotter(Plotter):
         show_legend: bool = True,
         legend_position: str = 'right',
         use_hatches: bool = True,
-        normalize: bool = True
+        normalize: bool = False
     ) -> None:
         """
-        Create grouped stacked bar chart for GCStack CPI breakdown
+        Create grouped stacked bar chart for RT Cycles Distribution
 
         Args:
-            data: DataFrame with columns: simulation, scene, base, memstruct, ...
+            data: DataFrame with columns: simulation, scene, rt_unit_0, rt_unit_1, ...
             output_file: Path to save figure
             title: Custom title
             xlabel: Custom x-axis label
-            ylabel: Custom y-axis label (default: "CPI Fraction" or "Cycles")
+            ylabel: Custom y-axis label (default: "Cycles" or "Fraction")
             figsize: Figure size (width, height)
             rotation: X-axis label rotation
             show_legend: Show legend
@@ -71,17 +61,31 @@ class GCStackPlotter(Plotter):
             use_hatches: Use hatch patterns to distinguish simulations
             normalize: Normalize to percentages (0-1 scale)
         """
+        # Copy dataframe
+        df = data.copy()
+
+        # Detect RT unit columns dynamically
+        rt_unit_cols = [col for col in df.columns if col.startswith('rt_unit_')]
+        rt_unit_cols.sort(key=lambda x: int(x.split('_')[-1]))  # Sort by unit number
+
+        if not rt_unit_cols:
+            raise ValueError("No rt_unit_* columns found in data")
+
+        n_units = len(rt_unit_cols)
+
         # Validate required columns
-        required = ['simulation', 'scene', 'total'] + self.COMPONENTS
-        missing = [col for col in required if col not in data.columns]
+        required = ['simulation', 'scene'] + rt_unit_cols
+        missing = [col for col in required if col not in df.columns]
         if missing:
             raise ValueError(f"Missing columns: {missing}")
 
+        # Calculate total cycles per row for normalization
+        df['total_cycles'] = df[rt_unit_cols].sum(axis=1)
+
         # Calculate percentages if normalizing
-        df = data.copy()
         if normalize:
-            for component in self.COMPONENTS:
-                df[component] = df[component] / df['total']
+            for col in rt_unit_cols:
+                df[col] = df[col] / df['total_cycles']
 
         # Get unique scenes and simulations
         scenes = sorted(df['scene'].unique())
@@ -102,6 +106,12 @@ class GCStackPlotter(Plotter):
         else:
             hatch_patterns = [''] * n_sims
 
+        # Generate colors for RT units (dynamic based on number of units)
+        unit_colors = ColorPalette.generate_colors(self.BASE_COLORS, n_units)
+
+        # Create component labels
+        unit_labels = {col: f'RT Unit {col.split("_")[-1]}' for col in rt_unit_cols}
+
         # Plot for each simulation
         for sim_idx, sim_name in enumerate(simulations):
             sim_data = df[df['simulation'] == sim_name]
@@ -113,13 +123,13 @@ class GCStackPlotter(Plotter):
             # Initialize bottom for stacking
             bottom = np.zeros(n_scenes)
 
-            # Plot each component
-            for comp_idx, component in enumerate(self.COMPONENTS):
+            # Plot each RT unit
+            for unit_idx, unit_col in enumerate(rt_unit_cols):
                 values = []
                 for scene in scenes:
                     scene_data = sim_data[sim_data['scene'] == scene]
                     if not scene_data.empty:
-                        val = scene_data[component].iloc[0]
+                        val = scene_data[unit_col].iloc[0]
                         values.append(val if pd.notna(val) else 0.0)
                     else:
                         values.append(0.0)
@@ -127,7 +137,7 @@ class GCStackPlotter(Plotter):
                 values = np.array(values)
 
                 # Only show label for first simulation (avoid duplicate legend entries)
-                label = self.COMPONENT_LABELS[component] if sim_idx == 0 else None
+                label = unit_labels[unit_col] if sim_idx == 0 else None
 
                 # Plot stacked bar
                 ax.bar(
@@ -136,7 +146,7 @@ class GCStackPlotter(Plotter):
                     bar_width,
                     bottom=bottom,
                     label=label,
-                    color=self.COMPONENT_COLORS[comp_idx],
+                    color=unit_colors[unit_idx],
                     edgecolor='black',
                     linewidth=0.7,
                     hatch=hatch_patterns[sim_idx],
@@ -160,62 +170,65 @@ class GCStackPlotter(Plotter):
                 )
                 sim_legend_elements.append(patch)
 
-            # Create two legends: one for components, one for simulations
+            # Create two figure legends: one for RT units, one for simulations
             if show_legend:
-                # Component legend (colors)
-                legend1 = ax.legend(
-                    loc='center left',
-                    bbox_to_anchor=(1.02, 0.5),
-                    fontsize=10,
-                    frameon=True,
-                    edgecolor='black',
-                    title='Stall classes',
-                    title_fontsize=11
-                )
-                legend1.get_frame().set_linewidth(0.8)
+                # Get handles and labels from axes for RT units
+                handles, labels = ax.get_legend_handles_labels()
 
-                # Simulation legend (hatches)
-                legend2 = ax.legend(
+                # # RT unit legend (colors) - placed at top right outside plot
+                # legend1 = fig.legend(
+                #     handles, labels,
+                #     loc='upper left',
+                #     bbox_to_anchor=(0.03, 1.04),
+                #     ncol=n_units,
+                #     fontsize=10,
+                #     frameon=False,
+                #     edgecolor='black',
+                #     title_fontsize=11
+                # )
+                # legend1.get_frame().set_linewidth(0.8)
+
+                # Simulation legend (hatches) - placed below RT units legend
+                legend2 = fig.legend(
                     handles=sim_legend_elements,
-                    loc='center left',
-                    bbox_to_anchor=(1.02, 0.2),
-                    fontsize=10,
-                    frameon=True,
-                    edgecolor='black',
-                    title='Configurations',
-                    title_fontsize=11
+                    loc='upper left',
+                    bbox_to_anchor=(0.3, 1.05),
+                    ncol=n_sims,
+                    frameon=False,
+                    edgecolor='black'
                 )
                 legend2.get_frame().set_linewidth(0.8)
-
-                # Add first legend back (matplotlib replaces it)
-                ax.add_artist(legend1)
         else:
-            # Single legend for components
+            # Single figure legend for RT units
             if show_legend:
+                handles, labels = ax.get_legend_handles_labels()
                 if legend_position == 'top':
-                    legend = ax.legend(
+                    legend = fig.legend(
+                        handles, labels,
                         loc='upper center',
-                        bbox_to_anchor=(0.5, 1.08),
-                        ncol=len(self.COMPONENTS),
-                        fontsize=9,
-                        frameon=True,
+                        bbox_to_anchor=(0.5, 1.02),
+                        ncol=2,
+                        frameon=False,
                         edgecolor='black'
                     )
                 else:
-                    legend = ax.legend(
-                        loc='center left',
-                        bbox_to_anchor=(1.02, 0.5),
-                        fontsize=10,
-                        frameon=True,
-                        edgecolor='black'
+                    legend = fig.legend(
+                        handles, labels,
+                        loc='upper left',
+                        bbox_to_anchor=(0.85, 0.88),
+                        frameon=False,
+                        edgecolor='black',
+                        title='RT Units'
                     )
                 legend.get_frame().set_linewidth(0.8)
 
         # Set labels
         ax.set_xticks(x_pos)
         ax.set_xticklabels([s.replace('_', ' ') for s in scenes],
-                           rotation=rotation, ha='center' if rotation == 0 else 'right',
-                           fontsize=11)
+                           rotation=rotation, ha='center' if rotation == 0 else 'right')
+
+        # Remove x-axis padding
+        ax.set_xlim(-0.5, n_scenes - 0.5)
 
         # Set y-axis limits
         if normalize:
@@ -227,8 +240,8 @@ class GCStackPlotter(Plotter):
         # Apply styling
         self._apply_style(
             ax,
-            xlabel or 'Scene',
-            ylabel or ('CPI Fraction' if normalize else 'Cycles'),
+            xlabel,
+            ylabel or ('Cycle Fraction' if normalize else 'Cycles'),
             title
         )
 
@@ -246,20 +259,37 @@ class GCStackPlotter(Plotter):
         baseline_sim: str,
         output_file: Optional[Path] = None,
         title: Optional[str] = None,
-        figsize: tuple = (14, 8)
+        figsize: tuple = (14, 8),
+        normalize: bool = False
     ) -> None:
         """
         Create side-by-side comparison of baseline vs other simulations
 
         Args:
-            data: DataFrame with GCStack data
+            data: DataFrame with RT Cycles Distribution data
             baseline_sim: Name of baseline simulation
             output_file: Path to save figure
             title: Custom title
             figsize: Figure size
+            normalize: Normalize to percentages
         """
+        df = data.copy()
+
+        # Detect RT unit columns dynamically
+        rt_unit_cols = [col for col in df.columns if col.startswith('rt_unit_')]
+        rt_unit_cols.sort(key=lambda x: int(x.split('_')[-1]))
+
+        if not rt_unit_cols:
+            raise ValueError("No rt_unit_* columns found in data")
+
+        n_units = len(rt_unit_cols)
+
+        # Generate colors for RT units
+        unit_colors = ColorPalette.generate_colors(self.BASE_COLORS, n_units)
+        unit_labels = {col: f'RT Unit {col.split("_")[-1]}' for col in rt_unit_cols}
+
         # Get baseline and other simulations
-        simulations = data['simulation'].unique()
+        simulations = df['simulation'].unique()
         if baseline_sim not in simulations:
             raise ValueError(f"Baseline '{baseline_sim}' not found in data")
 
@@ -272,49 +302,63 @@ class GCStackPlotter(Plotter):
             axes = [axes]
 
         # Plot baseline
-        self._plot_single_sim(axes[0], data, baseline_sim, f"{baseline_sim}\n(Baseline)")
+        self._plot_single_sim(
+            axes[0], df, baseline_sim, f"{baseline_sim}\n(Baseline)",
+            rt_unit_cols, unit_colors, unit_labels, normalize
+        )
 
         # Plot other simulations
         for idx, sim in enumerate(other_sims):
-            self._plot_single_sim(axes[idx + 1], data, sim, sim)
+            self._plot_single_sim(
+                axes[idx + 1], df, sim, sim,
+                rt_unit_cols, unit_colors, unit_labels, normalize
+            )
 
         # Add overall title
         if title:
-            fig.suptitle(title, fontsize=16, fontweight='bold', y=0.98)
+            fig.suptitle(title, y=0.98)
 
         # Create shared legend
         handles, labels = axes[0].get_legend_handles_labels()
         fig.legend(handles, labels, loc='center', bbox_to_anchor=(0.5, -0.05),
-                  ncol=len(self.COMPONENTS), fontsize=10, frameon=True,
+                  ncol=min(n_units, 6), frameon=True,
                   edgecolor='black')
 
         plt.tight_layout()
         plt.subplots_adjust(bottom=0.15)
         self._save_or_show(fig, output_file)
 
-    def _plot_single_sim(self, ax, data: pd.DataFrame, simulation: str, title: str):
+    def _plot_single_sim(
+        self, ax, data: pd.DataFrame, simulation: str, title: str,
+        rt_unit_cols: List[str], unit_colors: List[str],
+        unit_labels: dict, normalize: bool
+    ):
         """Helper to plot a single simulation"""
         sim_data = data[data['simulation'] == simulation].copy()
 
-        # Calculate percentages
-        for component in self.COMPONENTS:
-            sim_data[component] = sim_data[component] / sim_data['total']
+        # Calculate total cycles
+        sim_data['total_cycles'] = sim_data[rt_unit_cols].sum(axis=1)
+
+        # Calculate percentages if normalizing
+        if normalize:
+            for col in rt_unit_cols:
+                sim_data[col] = sim_data[col] / sim_data['total_cycles']
 
         scenes = sorted(sim_data['scene'].unique())
         x_pos = np.arange(len(scenes))
 
         # Plot stacked bars
         bottom = np.zeros(len(scenes))
-        for comp_idx, component in enumerate(self.COMPONENTS):
-            values = [sim_data[sim_data['scene'] == scene][component].iloc[0]
+        for unit_idx, unit_col in enumerate(rt_unit_cols):
+            values = [sim_data[sim_data['scene'] == scene][unit_col].iloc[0]
                      for scene in scenes]
 
             ax.bar(
                 x_pos,
                 values,
                 bottom=bottom,
-                label=self.COMPONENT_LABELS[component],
-                color=self.COMPONENT_COLORS[comp_idx],
+                label=unit_labels[unit_col],
+                color=unit_colors[unit_idx],
                 edgecolor='black',
                 linewidth=0.7,
                 alpha=0.9
@@ -323,37 +367,42 @@ class GCStackPlotter(Plotter):
 
         # Styling
         ax.set_xticks(x_pos)
-        ax.set_xticklabels(scenes, rotation=45, ha='right', fontsize=10)
-        ax.set_ylim(0, 1.0)
-        ax.set_yticks(np.arange(0, 1.1, 0.1))
-        ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{y:.1f}'))
-        ax.set_ylabel('CPI Fraction', fontsize=12, fontweight='bold')
-        ax.set_title(title, fontsize=13, fontweight='bold')
+        ax.set_xticklabels(scenes, rotation=45, ha='right')
+
+        if normalize:
+            ax.set_ylim(0, 1.0)
+            ax.set_yticks(np.arange(0, 1.1, 0.1))
+            ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{y:.1f}'))
+            ax.set_ylabel('Cycle Fraction')
+        else:
+            ax.set_ylabel('Cycles')
+
+        ax.set_title(title)
         ax.grid(axis='y', alpha=0.3, linestyle='--', linewidth=0.5)
         ax.set_axisbelow(True)
 
 
 # Convenience function
-def plot_gcstack(
+def plot_rt_cycles_dist(
     data: pd.DataFrame,
     output_file: Path,
     title: Optional[str] = None,
     **kwargs
 ) -> None:
     """
-    Quick GCStack plotting function
+    Quick RT Cycles Distribution plotting function
 
     Args:
-        data: DataFrame with GCStack data
+        data: DataFrame with RT Cycles Distribution data
         output_file: Path to save plot
         title: Plot title
-        **kwargs: Additional arguments for GCStackPlotter.plot()
+        **kwargs: Additional arguments for RTCyclesDistPlotter.plot()
 
     Example:
-        plot_gcstack(df, Path('plots/gcstack.png'), title='My Analysis')
+        plot_rt_cycles_dist(df, Path('plots/rt_cycles_dist.png'), title='My Analysis')
     """
     # Ensure plots directory exists
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
-    plotter = GCStackPlotter()
+    plotter = RTCyclesDistPlotter()
     plotter.plot(data, output_file, title=title, **kwargs)

@@ -35,12 +35,14 @@ from extractors.interval_extractor import IntervalExtractor
 from extractors.rt_cache_extractor import RTCacheExtractor
 from extractors.gcstack_extractor import GCStackExtractor
 from extractors.rt_gcstack_extractor import RTGCStackExtractor
+from extractors.rt_cycles_dist_extractor import RTCyclesDistExtractor
 
 # Analysis
 from core.analysis import Analysis
 
 # Plotting
-from plotters import PlotBuilder, plot, quick_plot, GCStackPlotter, plot_gcstack, RTGCStackPlotter, plot_rt_gcstack
+from plotters import PlotBuilder, plot, quick_plot, GCStackPlotter, plot_gcstack, RTGCStackPlotter, plot_rt_gcstack ,GroupedBarPlotter, NormalizedBarPlotter
+from plotters.rt_cycles_dist_plotter import RTCyclesDistPlotter, plot_rt_cycles_dist
 
 # Parsers (for advanced usage)
 from parsers.log_parser import (
@@ -53,6 +55,7 @@ from parsers.interval_parser import IntervalParser
 from parsers.rt_cache_parser import RTCacheParser
 from parsers.gcstack_parser import GCStackParser
 from parsers.rt_gcstack_parser  import RTGCStackParser
+from parsers.rt_cycles_dist_parser import RTCyclesDistParser
 
 # Storage (for advanced usage)
 from storage.repository import (
@@ -78,15 +81,20 @@ __all__ = [
     'RTCacheExtractor',
     'GCStackExtractor',
     'RTGCStackExtractor',
+    'RTCyclesDistExtractor',
     'Analysis',
     # Plotting
     'PlotBuilder',
+    'GroupedBarPlotter',
+    'NormalizedBarPlotter',
     'plot',
     'quick_plot',
     'GCStackPlotter',
     'plot_gcstack',
     'RTGCStackPlotter',
     'plot_rt_gcstack',
+    'RTCyclesDistPlotter',
+    'plot_rt_cycles_dist',
     # Convenience functions
     'extract',
     'load',
@@ -98,6 +106,7 @@ __all__ = [
     'RTCacheParser',
     'GCStackParser',
     'RTGCStackParser',
+    'RTCyclesDistParser',
     'ParserFactory',
     # Storage
     'Repository',

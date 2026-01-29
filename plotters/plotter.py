@@ -44,25 +44,26 @@ class Plotter(ABC):
         return fig, ax
     
     def _apply_style(self, ax, xlabel: str, ylabel: str, title: str):
-        """Apply consistent styling to axes"""
-        ax.set_xlabel(xlabel, fontsize=13, fontweight='bold')
-        ax.set_ylabel(ylabel, fontsize=13, fontweight='bold')
-        ax.set_title(title, fontsize=15, fontweight='bold', pad=20)
-        
+        """Apply consistent styling to axes (respects rcParams for font sizes)"""
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+        if title:
+            ax.set_title(title, fontweight='bold', pad=20)
+
         # Grid
         ax.grid(axis='y', alpha=0.3, linestyle='--', linewidth=0.5)
         ax.set_axisbelow(True)
-        
+
         # Border
         for spine in ax.spines.values():
             spine.set_edgecolor('black')
             spine.set_linewidth(0.8)
-        
-        # Ticks
+
+        # Ticks (respects rcParams for label sizes)
         ax.minorticks_on()
-        ax.tick_params(axis='y', which='major', labelsize=10, length=6, width=0.8)
+        ax.tick_params(axis='y', which='major', length=6, width=0.8)
         ax.tick_params(axis='y', which='minor', length=3, width=0.5)
-        ax.tick_params(axis='x', which='major', labelsize=10, length=6, width=0.8)
+        ax.tick_params(axis='x', which='major', length=6, width=0.8)
 
 
 class ColorPalette:

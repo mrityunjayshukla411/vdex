@@ -135,7 +135,7 @@ class GroupedBarPlotter(Plotter):
             ax,
             xlabel or 'Benchmark',
             ylabel or metric,
-            title or f'{metric} Comparison'
+            title
         )
         
         # Legend

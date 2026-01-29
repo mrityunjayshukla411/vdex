@@ -14,28 +14,27 @@ class RTGCStackPlotter(Plotter):
     """Create stacked bar charts for RT GCStack CPI breakdown"""
 
     # RT GCStack components in order (base first)
-    COMPONENTS = ['base', 'travdata', 'travstruct', 'isectdelay',
-                  'isectstruct', 'memstruct', 'coherence', 'idle']
+    COMPONENTS = ['base', 'memdata', 'memstruct', 'comdata',
+                  'comstruct', 'idle']
 
     # Component display names
     COMPONENT_LABELS = {
         'base': 'Base',
-        'travdata': 'Trav Data',
-        'travstruct': 'Trav Struct',
-        'isectdelay': 'Isect Delay',
-        'isectstruct': 'Isect Struct',
+        'memdata': 'Mem Data',
         'memstruct': 'Mem Struct',
-        'coherence': 'Coherence',
+        'comdata': 'Com Data',
+        'comstruct': 'Com Struct',
         'idle': 'Idle'
     }
+
 
     # Color palette for components (distinct, colorblind-friendly)
     COMPONENT_COLORS = [
         '#4C72B0',  # Base - blue
-        '#DD8452',  # TravData - orange
-        '#C44E52',  # TravStruct - red
-        '#8172B3',  # IsectDelay - purple
-        '#55A868',  # IsectStruct - green
+        '#DD8452',  # MemData - orange
+        '#C44E52',  # MemStruct - red
+        '#8172B3',  # ComData - purple
+        '#55A868',  # ComStruct - green
         '#64B5CD',  # MemStruct - cyan
         '#937860',  # Coherence - brown
         '#CCCCCC',  # Idle - gray
@@ -181,7 +180,7 @@ class RTGCStackPlotter(Plotter):
                     fontsize=10,
                     frameon=True,
                     edgecolor='black',
-                    title='Components',
+                    title='Stall classes',
                     title_fontsize=11
                 )
                 legend1.get_frame().set_linewidth(0.8)
@@ -194,7 +193,7 @@ class RTGCStackPlotter(Plotter):
                     fontsize=10,
                     frameon=True,
                     edgecolor='black',
-                    title='Simulations',
+                    title='Configurations',
                     title_fontsize=11
                 )
                 legend2.get_frame().set_linewidth(0.8)
@@ -241,7 +240,7 @@ class RTGCStackPlotter(Plotter):
             ax,
             xlabel or 'Scene',
             ylabel or ('CPI Fraction' if normalize else 'Cycles'),
-            title or 'RT GCStack CPI Stack Breakdown'
+            title
         )
 
         # Adjust layout to make room for legends

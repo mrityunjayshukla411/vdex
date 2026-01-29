@@ -39,6 +39,8 @@ class VulkanSimParser(LogParser):
         # Compile regex patterns once
         self._patterns = {
             'gpu_tot_sim_cycle': re.compile(r'gpu_tot_sim_cycle\s*=\s*([\d.]+)'),
+            'rt_mem_accesses_queue_avg': re.compile(r'rt_mem_accesses_queue_avg\s*=\s*([\d.]+)'),
+            'rt_mem_accesses_queue_max': re.compile(r'rt_mem_accesses_queue_max\s*=\s*([\d.]+)'),
             'gpu_tot_ipc': re.compile(r'gpu_tot_ipc\s*=\s*([\d.]+)'),
             'gpu_stall_dramfull': re.compile(r'gpu_stall_dramfull\s*=\s*([\d.]+)'),
             'gpu_tot_occupancy': re.compile(r'gpu_tot_occupancy\s*=\s*([\d.]+)'),
@@ -49,6 +51,18 @@ class VulkanSimParser(LogParser):
             'gpu_tot_sim_insn': re.compile(r'gpu_tot_sim_insn\s*=\s*([\d.]+)'),
             'kernel_avg_power': re.compile(r'kernel_avg_power\s*=\s*([\d.]+)'),
             'bwutil': re.compile(r'bwutil\s*=\s*([\d.]+)'),
+            'max_icnt2mem_latency': re.compile(r'max_icnt2mem_latency\s*=\s*([\d.]+)'),
+            'avg_icnt2mem_latency': re.compile(r'avg_icnt2mem_latency\s*=\s*([\d.]+)'),
+            # L1D Miss Latency metrics
+            'L1D_miss_latency_total_accesses': re.compile(r'Global L1D Miss Latency:\s*\n\s*Total Accesses:\s*([\d.]+)'),
+            'L1D_miss_latency_avg': re.compile(r'Global L1D Miss Latency:.*?Average Latency:\s*([\d.]+)\s*cycles', re.DOTALL),
+            'L1D_miss_latency_max': re.compile(r'Global L1D Miss Latency:.*?Max Latency:\s*([\d.]+)\s*cycles', re.DOTALL),
+            'L1D_miss_latency_min': re.compile(r'Global L1D Miss Latency:.*?Min Latency:\s*([\d.]+)\s*cycles', re.DOTALL),
+            # L2 Miss Latency metrics
+            'L2_miss_latency_total_accesses': re.compile(r'Global L2 Miss Latency:\s*\n\s*Total Accesses:\s*([\d.]+)'),
+            'L2_miss_latency_avg': re.compile(r'Global L2 Miss Latency:.*?Average Latency:\s*([\d.]+)\s*cycles', re.DOTALL),
+            'L2_miss_latency_max': re.compile(r'Global L2 Miss Latency:.*?Max Latency:\s*([\d.]+)\s*cycles', re.DOTALL),
+            'L2_miss_latency_min': re.compile(r'Global L2 Miss Latency:.*?Min Latency:\s*([\d.]+)\s*cycles', re.DOTALL),
         }
         
         # Units for metrics
@@ -58,6 +72,14 @@ class VulkanSimParser(LogParser):
             'gpu_tot_occupancy': '%',
             'kernel_avg_power': 'W',
             'bwutil': '%',
+            'L1D_miss_latency_total_accesses': 'accesses',
+            'L1D_miss_latency_avg': 'cycles',
+            'L1D_miss_latency_max': 'cycles',
+            'L1D_miss_latency_min': 'cycles',
+            'L2_miss_latency_total_accesses': 'accesses',
+            'L2_miss_latency_avg': 'cycles',
+            'L2_miss_latency_max': 'cycles',
+            'L2_miss_latency_min': 'cycles',
         }
     
     def can_parse(self, log_file: Path) -> bool:
