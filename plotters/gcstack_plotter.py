@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from plotters.plotter import Plotter, ColorPalette
+from plotters.plotter import Plotter, ColorPalette, order_scenes
 
 
 class GCStackPlotter(Plotter):
@@ -84,7 +84,7 @@ class GCStackPlotter(Plotter):
                 df[component] = df[component] / df['total']
 
         # Get unique scenes and simulations
-        scenes = sorted(df['scene'].unique())
+        scenes = order_scenes(df['scene'].unique())
         simulations = df['simulation'].unique()
         n_scenes = len(scenes)
         n_sims = len(simulations)
@@ -300,7 +300,7 @@ class GCStackPlotter(Plotter):
         for component in self.COMPONENTS:
             sim_data[component] = sim_data[component] / sim_data['total']
 
-        scenes = sorted(sim_data['scene'].unique())
+        scenes = order_scenes(sim_data['scene'].unique())
         x_pos = np.arange(len(scenes))
 
         # Plot stacked bars

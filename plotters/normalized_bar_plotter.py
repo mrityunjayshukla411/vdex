@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from plotters.plotter import Plotter, ColorPalette
+from plotters.plotter import Plotter, ColorPalette, order_scenes
 
 
 class NormalizedBarPlotter(Plotter):
@@ -57,7 +57,7 @@ class NormalizedBarPlotter(Plotter):
             baseline_values[row['scene']] = row[metric] if row[metric] != 0 else 1.0
         
         # Prepare normalized data
-        scenes = sorted(data['scene'].unique())
+        scenes = order_scenes(data['scene'].unique())
         simulations = [s for s in data['simulation'].unique() if s != baseline]
         n_scenes = len(scenes)
         n_sims = len(simulations)

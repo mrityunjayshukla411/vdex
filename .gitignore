@@ -45,6 +45,7 @@ test_data/
 *.parquet
 *.csv
 *.hdf5
+fonts/
 
 # Jupyter
 .ipynb_checkpoints

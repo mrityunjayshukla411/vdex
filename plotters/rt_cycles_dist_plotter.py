@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from plotters.plotter import Plotter, ColorPalette
+from plotters.plotter import Plotter, ColorPalette, order_scenes
 
 
 class RTCyclesDistPlotter(Plotter):
@@ -88,7 +88,7 @@ class RTCyclesDistPlotter(Plotter):
                 df[col] = df[col] / df['total_cycles']
 
         # Get unique scenes and simulations
-        scenes = sorted(df['scene'].unique())
+        scenes = order_scenes(df['scene'].unique())
         simulations = df['simulation'].unique()
         n_scenes = len(scenes)
         n_sims = len(simulations)
@@ -344,7 +344,7 @@ class RTCyclesDistPlotter(Plotter):
             for col in rt_unit_cols:
                 sim_data[col] = sim_data[col] / sim_data['total_cycles']
 
-        scenes = sorted(sim_data['scene'].unique())
+        scenes = order_scenes(sim_data['scene'].unique())
         x_pos = np.arange(len(scenes))
 
         # Plot stacked bars

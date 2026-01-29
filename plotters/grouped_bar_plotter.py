@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from plotters.plotter import Plotter, ColorPalette
+from plotters.plotter import Plotter, ColorPalette, order_scenes
 
 
 class GroupedBarPlotter(Plotter):
@@ -50,7 +50,7 @@ class GroupedBarPlotter(Plotter):
             raise ValueError(f"Metric '{metric}' not found in data")
         
         # Prepare data
-        scenes = sorted(data['scene'].unique())
+        scenes = order_scenes(data['scene'].unique())
         simulations = data['simulation'].unique()
         n_scenes = len(scenes)
         n_sims = len(simulations)

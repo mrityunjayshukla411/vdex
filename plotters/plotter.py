@@ -9,6 +9,37 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+# Default scene ordering for consistent plots
+SCENE_ORDER = [
+    "wknd", "ship", "bunny", "spnza", "chsnt", "bath", "ref", "crnvl", "fox",
+    "party", "sprng", "lands", "frst", "park", "car", "robot"
+]
+
+
+def order_scenes(scenes, custom_order: Optional[List[str]] = None) -> List[str]:
+    """
+    Order scenes according to a predefined order.
+
+    Args:
+        scenes: Iterable of scene names (e.g., from df['scene'].unique())
+        custom_order: Optional custom order list. If None, uses SCENE_ORDER.
+
+    Returns:
+        List of scenes in the specified order. Scenes not in the order list
+        are appended at the end in their original order.
+    """
+    order = custom_order if custom_order is not None else SCENE_ORDER
+    scene_set = set(scenes)
+
+    # First, add scenes that are in the order list (maintaining order)
+    ordered = [s for s in order if s in scene_set]
+
+    # Then, add any remaining scenes not in the order list (sorted alphabetically)
+    remaining = sorted([s for s in scene_set if s not in order])
+
+    return ordered + remaining
+
+
 class Plotter(ABC):
     """Abstract plotter interface - implement for different plot types"""
     
